@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
-import 'screens/loading_screen.dart';
-import 'screens/login_screen.dart';
+import 'screens/splash_screen.dart';
+import 'utils/theme.dart';
 
-void main() => runApp(const PatchPalApp());
+void main() {
+  runApp(const PatchPalApp());
+}
 
 class PatchPalApp extends StatelessWidget {
-  const PatchPalApp({super.key});
+  const PatchPalApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'PatchPal',
       debugShowCheckedModeBanner: false,
-      home: const LoadingScreen(),
+      title: 'PatchPal',
+      theme: AppTheme.lightTheme,
+      home: const SplashScreen(),
     );
   }
 }
