@@ -1,8 +1,11 @@
+// lib/screens/splash_screen.dart
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../utils/constants.dart';
 import '../widgets/patchpal_logo.dart';
-import 'login_screen.dart';
+import '../services/auth_service.dart';
+import 'auth_wrapper.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -19,6 +22,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   void initState() {
     super.initState();
     
+    // Set up animations
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 2),
@@ -31,11 +35,13 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       ),
     );
     
+    // Start animation
     _animationController.forward();
     
+    // Navigate to appropriate screen after delay
     Timer(const Duration(seconds: 3), () {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const LoginScreen())
+        MaterialPageRoute(builder: (_) => const AuthWrapper())
       );
     });
   }
@@ -67,6 +73,16 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               const Text(
                 'PatchPal',
                 style: AppTextStyles.heading,
+              ),
+              const SizedBox(height: 40),
+              // Loading indicator
+              const SizedBox(
+                width: 40,
+                height: 40,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 3,
+                ),
               ),
             ],
           ),

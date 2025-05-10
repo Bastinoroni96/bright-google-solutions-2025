@@ -1,3 +1,17 @@
+// Add this buildscript section at the top
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath("com.android.tools.build:gradle:8.1.0") // Use your current version
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.0") // Use your current version
+        classpath("com.google.gms:google-services:4.4.0") // Google Services plugin
+    }
+}
+
+// Your existing code
 allprojects {
     repositories {
         google()

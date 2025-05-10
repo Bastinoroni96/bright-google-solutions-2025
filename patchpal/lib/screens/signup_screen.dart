@@ -1,4 +1,4 @@
-// lib/screens/login_screen.dart - with layout fix
+// lib/screens/signup_screen.dart - with layout fix
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../utils/constants.dart';
@@ -6,21 +6,23 @@ import '../widgets/patchpal_logo.dart';
 import '../widgets/login_text_field.dart';
 import '../widgets/rounded_button.dart';
 import '../services/auth_service.dart';
-import 'signup_screen.dart'; 
+import 'login_screen.dart';
 import 'home_screen.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+class SignupScreen extends StatefulWidget {
+  const SignupScreen({Key? key}) : super(key: key);
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<SignupScreen> createState() => _SignupScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _SignupScreenState extends State<SignupScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
   bool _isLoading = false;
   String? _errorMessage;
 
@@ -28,6 +30,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -51,7 +54,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Future<void> _handleLogin() async {
+  Future<void> _handleSignup() async {
     if (!_formKey.currentState!.validate()) return;
     
     setState(() {
@@ -61,13 +64,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final success = await authProvider.signIn(
+      final success = await authProvider.register(
         _emailController.text.trim(),
         _passwordController.text,
       );
 
       if (success) {
-        _showSuccessSnackBar('Login successful!');
+        _showSuccessSnackBar('Account created successfully!');
         
         // Navigate to the home screen
         Navigator.of(context).pushReplacement(
@@ -94,34 +97,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  Future<void> _handleForgotPassword() async {
-    if (_emailController.text.isEmpty) {
-      _showErrorSnackBar('Please enter your email address first');
-      return;
-    }
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final success = await authProvider.resetPassword(_emailController.text.trim());
-      
-      if (success) {
-        _showSuccessSnackBar('Password reset email sent. Check your inbox.');
-      } else {
-        _showErrorSnackBar(authProvider.errorMessage ?? 'Failed to send reset email');
-      }
-    } catch (e) {
-      _showErrorSnackBar(e.toString());
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -139,21 +114,21 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const SizedBox(height: 80),
+                  const SizedBox(height: 60),
                   // Logo
                   const PatchPalLogo(),
                   const SizedBox(height: 20),
                   // Welcome Text
                   const Text(
-                    'Welcome Back!',
+                    'Create Account',
                     style: AppTextStyles.heading,
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'Login to continue',
+                    'Sign up to get started',
                     style: AppTextStyles.subheading,
                   ),
-                  const SizedBox(height: 50),
+                  const SizedBox(height: 40),
                   // Email Input
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -165,12 +140,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 8),
                       LoginTextField(
                         controller: _emailController,
-                        hintText: 'bright@gmail.com',
+                        hintText: 'your.email@example.com',
                         keyboardType: TextInputType.emailAddress,
-                        prefixIcon: const Icon(
-                          Icons.email_outlined,
-                          color: Colors.grey,
-                        ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter your email';
@@ -180,10 +151,14 @@ class _LoginScreenState extends State<LoginScreen> {
                           }
                           return null;
                         },
+                        prefixIcon: const Icon(
+                          Icons.email_outlined,
+                          color: Colors.grey,
+                        ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 25),
+                  const SizedBox(height: 20),
                   // Password Input
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -195,11 +170,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 8),
                       LoginTextField(
                         controller: _passwordController,
-                        hintText: 'Your password',
+                        hintText: 'Create password',
                         obscureText: _obscurePassword,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Please enter your password';
+                            return 'Please enter a password';
+                          }
+                          if (value.length < 6) {
+                            return 'Password must be at least 6 characters';
                           }
                           return null;
                         },
@@ -217,17 +195,43 @@ class _LoginScreenState extends State<LoginScreen> {
                           },
                         ),
                       ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  // Confirm Password Input
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Confirm Password',
+                        style: AppTextStyles.inputLabel,
+                      ),
                       const SizedBox(height: 8),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: _handleForgotPassword,
-                          child: const Text(
-                            'Forgot Password?',
-                            style: TextStyle(
-                              color: Colors.white70,
-                            ),
+                      LoginTextField(
+                        controller: _confirmPasswordController,
+                        hintText: 'Confirm password',
+                        obscureText: _obscureConfirmPassword,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please confirm your password';
+                          }
+                          if (value != _passwordController.text) {
+                            return 'Passwords do not match';
+                          }
+                          return null;
+                        },
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscureConfirmPassword 
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
+                            color: Colors.grey,
                           ),
+                          onPressed: () {
+                            setState(() {
+                              _obscureConfirmPassword = !_obscureConfirmPassword;
+                            });
+                          },
                         ),
                       ),
                     ],
@@ -246,40 +250,39 @@ class _LoginScreenState extends State<LoginScreen> {
                         textAlign: TextAlign.center,
                       ),
                     ),
-                  // Login Button
+                  // Signup Button
                   _isLoading
                       ? const CircularProgressIndicator(color: Colors.white)
                       : RoundedButton(
-                          text: 'LOG IN',
+                          text: 'SIGN UP',
                           backgroundColor: Colors.lightBlue.shade300,
-                          onPressed: _handleLogin,
+                          onPressed: _handleSignup,
                         ),
-                  const SizedBox(height: 50),
-                  // Don't have an account section
+                  const SizedBox(height: 30),
+                  // Already have an account section
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Text(
-                        "Don't have an account? ",
+                        "Already have an account? ",
                         style: TextStyle(
                           color: Colors.white70,
                         ),
                       ),
-                      // FIX: This is where the issue is - need to provide proper constraints
                       TextButton(
                         onPressed: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(builder: (_) => const SignupScreen())
+                          Navigator.of(context).pushReplacement(
+                            MaterialPageRoute(builder: (_) => const LoginScreen())
                           );
                         },
-                        // Remove these style properties that are causing the issue
+                        // FIX: Remove the problematic style properties
                         // style: TextButton.styleFrom(
                         //   padding: EdgeInsets.zero,
-                        //   minimumSize: const Size.fromHeight(0), // THIS IS THE PROBLEM
+                        //   minimumSize: const Size.fromHeight(0), // THIS CAUSES THE ISSUE
                         //   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         // ),
                         child: const Text(
-                          'Sign up now',
+                          'Log in',
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
