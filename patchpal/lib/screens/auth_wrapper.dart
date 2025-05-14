@@ -21,6 +21,10 @@ class AuthWrapper extends StatelessWidget {
       );
     }
     
+    // Debug log auth state
+    print('Auth state: ${authProvider.isAuthenticated}');
+    print('User: ${authProvider.user}');
+    
     // Navigate based on authentication state
     if (authProvider.isAuthenticated) {
       return const HomeScreen();

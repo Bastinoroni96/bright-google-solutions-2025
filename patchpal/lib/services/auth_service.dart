@@ -1,9 +1,12 @@
 // lib/services/auth_service.dart
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import '../models/user_model.dart';
+import 'user_service.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final UserService _userService = UserService();
 
   // Auth change user stream
   Stream<User?> get authStateChanges => _auth.authStateChanges();
@@ -25,15 +28,42 @@ class AuthService {
   }
 
   // Register with email & password
-  Future<UserCredential?> registerWithEmailPassword(String email, String password) async {
+  Future<UserCredential?> registerWithEmailPassword({
+    required String email, 
+    required String password,
+    required String fullName,
+    required String accountType,
+    Map<String, dynamic>? additionalInfo,
+  }) async {
     try {
+      // Create the user account in Firebase Auth
       UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
+      
+      // Create the user profile in Firestore
+      if (userCredential.user != null) {
+        UserModel newUser = UserModel(
+          uid: userCredential.user!.uid,
+          email: email,
+          fullName: fullName,
+          accountType: accountType,
+          additionalInfo: additionalInfo,
+        );
+        
+        await _userService.createUser(newUser);
+        
+        // Update display name in Firebase Auth
+        await userCredential.user!.updateDisplayName(fullName);
+      }
+      
       return userCredential;
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
+    } catch (e) {
+      print('Error in registration: $e');
+      throw Exception('Registration failed. Please try again.');
     }
   }
 
@@ -88,7 +118,10 @@ class AuthService {
 // Auth Provider using Provider package
 class AuthProvider extends ChangeNotifier {
   final AuthService _authService = AuthService();
+  final UserService _userService = UserService();
+  
   User? _user;
+  UserModel? _userModel;
   bool _isLoading = false;
   String? _errorMessage;
 
@@ -97,14 +130,33 @@ class AuthProvider extends ChangeNotifier {
   }
 
   void _init() {
-    _authService.authStateChanges.listen((User? user) {
+    _authService.authStateChanges.listen((User? user) async {
       _user = user;
+      
+      if (user != null) {
+        // Load user data from Firestore
+        _isLoading = true;
+        notifyListeners();
+        
+        try {
+          _userModel = await _userService.getUserById(user.uid);
+        } catch (e) {
+          print('Error loading user data: $e');
+          _userModel = null;
+        }
+        
+        _isLoading = false;
+      } else {
+        _userModel = null;
+      }
+      
       notifyListeners();
     });
   }
 
   // Getters
   User? get user => _user;
+  UserModel? get userModel => _userModel;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   bool get isAuthenticated => _user != null;
@@ -126,12 +178,24 @@ class AuthProvider extends ChangeNotifier {
   }
 
   // Register
-  Future<bool> register(String email, String password) async {
+  Future<bool> register({
+    required String email, 
+    required String password,
+    required String fullName,
+    required String accountType,
+    Map<String, dynamic>? additionalInfo,
+  }) async {
     _setLoading(true);
     _clearError();
     
     try {
-      await _authService.registerWithEmailPassword(email, password);
+      await _authService.registerWithEmailPassword(
+        email: email,
+        password: password,
+        fullName: fullName,
+        accountType: accountType,
+        additionalInfo: additionalInfo,
+      );
       _setLoading(false);
       return true;
     } on Exception catch (e) {

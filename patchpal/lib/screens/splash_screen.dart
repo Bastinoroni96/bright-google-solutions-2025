@@ -1,10 +1,8 @@
 // lib/screens/splash_screen.dart
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../utils/constants.dart';
 import '../widgets/patchpal_logo.dart';
-import '../services/auth_service.dart';
 import 'auth_wrapper.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -38,7 +36,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     // Start animation
     _animationController.forward();
     
-    // Navigate to appropriate screen after delay
+    // Navigate to auth wrapper after delay (will check auth state)
     Timer(const Duration(seconds: 3), () {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const AuthWrapper())

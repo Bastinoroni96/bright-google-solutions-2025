@@ -1,13 +1,10 @@
 // lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';  // Add this import
 import 'firebase_options.dart';
-import 'screens/splash_screen.dart';
-import 'screens/auth_wrapper.dart';
-import 'services/auth_service.dart';
-import 'services/navigation_service.dart';
-import 'utils/theme.dart';
+import 'app.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,25 +14,26 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(create: (_) => NavigationService()),
-      ],
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'PatchPal',
-        theme: AppTheme.lightTheme,
-        home: const SplashScreen(),
-      ),
-    );
+  // Configure Firestore settings
+  FirebaseFirestore.instance.settings = const Settings(
+    persistenceEnabled: true,
+    cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED
+  );
+  
+  // Sign out on app start (for development purposes)
+  await FirebaseAuth.instance.signOut();
+  print('User signed out on app start');
+  
+  // Test Firestore connection
+  try {
+    await FirebaseFirestore.instance.collection('test').doc('test').set({
+      'timestamp': FieldValue.serverTimestamp(),
+      'test': 'This is a test'
+    });
+    print('Firestore connection successful');
+  } catch (e) {
+    print('Firestore connection test failed: $e');
   }
+  
+  runApp(const PatchPalApp());
 }
