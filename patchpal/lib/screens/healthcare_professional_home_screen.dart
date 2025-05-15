@@ -1,4 +1,4 @@
-// lib/screens/home_screen.dart (updated to navigate to personal health screen)
+// lib/screens/healthcare_professional_home_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
@@ -6,17 +6,15 @@ import '../utils/constants.dart';
 import '../widgets/patchpal_logo.dart';
 import '../widgets/bottom_nav_bar.dart';
 import 'login_screen.dart';
-import 'healthcare_professional_home_screen.dart';
-import 'personal_health_screen.dart'; // Import the personal health screen
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+class HealthcareProfessionalHomeScreen extends StatefulWidget {
+  const HealthcareProfessionalHomeScreen({Key? key}) : super(key: key);
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<HealthcareProfessionalHomeScreen> createState() => _HealthcareProfessionalHomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HealthcareProfessionalHomeScreenState extends State<HealthcareProfessionalHomeScreen> {
   NavItem _currentNavItem = NavItem.dashboard;
 
   void _handleNavigation(NavItem item) {
@@ -30,14 +28,14 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
     
-    // Check if user is personal type
+    // Check if user is healthcare professional
     if (authProvider.userModel != null && 
-        authProvider.userModel!.accountType != 'personal') {
-      // Redirect to healthcare professional home screen
+        authProvider.userModel!.accountType != 'healthcare_professional') {
+      // Redirect to personal user home screen
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const HealthcareProfessionalHomeScreen()),
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
         );
       });
       
@@ -47,8 +45,11 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
     
-    // Get the user's name
-    final String userName = authProvider.userModel?.fullName ?? 'User';
+    // Get the healthcare professional's info
+    final String name = authProvider.userModel?.fullName ?? 'Doctor';
+    final Map<String, dynamic>? additionalInfo = authProvider.userModel?.additionalInfo;
+    final String hospital = additionalInfo?['hospital'] ?? 'Hospital';
+    final String specialty = additionalInfo?['specialty'] ?? 'Specialty';
     
     return Scaffold(
       body: SafeArea(
@@ -93,7 +94,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'Hi, $userName!',
+                  'Welcome, Dr. $name',
                   style: const TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
@@ -103,14 +104,14 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             
-            // Question text
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            // Specialty and hospital
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'Whose health do you want to monitor?',
-                  style: TextStyle(
+                  '$specialty • $hospital',
+                  style: const TextStyle(
                     fontSize: 16,
                     color: Colors.grey,
                   ),
@@ -118,7 +119,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             
-            // Expanded area with options on a light blue background
+            // Expanded area with healthcare professional options
             Expanded(
               child: Container(
                 width: double.infinity,
@@ -136,35 +137,78 @@ class _HomeScreenState extends State<HomeScreen> {
                     topRight: Radius.circular(30),
                   ),
                 ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Personal option
-                    _buildOptionCard(
-                      icon: Icons.person,
-                      title: 'Personal',
-                      onTap: () {
-                        // Navigate to the personal health screen
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const PersonalHealthScreen()),
-                        );
-                      },
-                    ),
-                    
-                    const SizedBox(height: 30),
-                    
-                    // Family option
-                    _buildOptionCard(
-                      icon: Icons.family_restroom,
-                      title: 'Family',
-                      onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Family monitoring coming soon')),
-                        );
-                      },
-                    ),
-                  ],
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 20),
+                      const Text(
+                        'Your Patients',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E88C9),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      
+                      // Placeholder for patient list
+                      Expanded(
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.people_outline,
+                                size: 64,
+                                color: Color(0xFF1E88C9),
+                              ),
+                              const SizedBox(height: 16),
+                              const Text(
+                                'No patients yet',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF1E88C9),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              const Text(
+                                'Your patient list will appear here',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              const SizedBox(height: 32),
+                              ElevatedButton(
+                                onPressed: () {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('This feature is coming soon')),
+                                  );
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF1E88C9),
+                                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(30),
+                                  ),
+                                ),
+                                child: const Text(
+                                  'Add Patient',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -173,61 +217,6 @@ class _HomeScreenState extends State<HomeScreen> {
             BottomNavBar(
               currentItem: _currentNavItem,
               onItemSelected: _handleNavigation,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildOptionCard({
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 140,
-        height: 140,
-        decoration: BoxDecoration(
-          color: const Color(0xFF1E88C9),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 10,
-              spreadRadius: 1,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Icon
-            Container(
-              width: 50,
-              height: 50,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                icon,
-                color: const Color(0xFF1E88C9),
-                size: 30,
-              ),
-            ),
-            const SizedBox(height: 16),
-            // Title
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
             ),
           ],
         ),
