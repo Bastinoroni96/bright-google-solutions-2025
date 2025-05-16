@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "680208024985",
+    "project_id": "patchpal-e9dcf",
+    "storage_bucket": "patchpal-e9dcf.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:680208024985:android:a857690d68a9037214ff08",
+        "android_client_info": {
+          "package_name": "com.example.patchpal"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC6OEaB5c-Lm-Yysvf0QlscHRzzZgyD_kY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
