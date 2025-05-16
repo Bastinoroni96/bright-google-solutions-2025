@@ -7,7 +7,7 @@ import '../widgets/patchpal_logo.dart';
 import '../widgets/bottom_nav_bar.dart';
 import 'login_screen.dart';
 import 'healthcare_professional_home_screen.dart';
-import 'personal_health_screen.dart'; // Import the personal health screen
+import '../screens/personal_health_screen.dart'; // Import the personal health screen
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);

@@ -18,6 +18,11 @@ dependencies:
   provider: ^6.1.1
   fluttertoast: ^8.2.4
   intl: ^0.18.1
+  google_generative_ai: ^0.4.7
+  flutter_dotenv: ^5.1.0 
+  tflite_flutter: ^0.10.1
+  path_provider: ^2.1.2
+  http: ^1.2.0
 
 dev_dependencies:
   flutter_test:
@@ -29,4 +34,5 @@ flutter:
 
   assets:
     - assets/patchpal_logo.png
+    - .env
 

@@ -43,3 +43,13 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Environment variables - NEVER commit these!
+.env
+.env.development
+.env.production
+*.env
+
+# Firebase config files that might contain secrets
+google-services.json
+GoogleService-Info.plist
