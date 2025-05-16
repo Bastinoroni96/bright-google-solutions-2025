@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../services/auth_service.dart' as app_auth;
 import '../widgets/healthcare_nav_bar.dart';
 import 'patient_detail_screen.dart';
+import 'triage_screen.dart';
 
 class HealthcareProfessionalHomeScreen extends StatefulWidget {
   const HealthcareProfessionalHomeScreen({Key? key}) : super(key: key);
@@ -278,22 +279,45 @@ class _HealthcareProfessionalHomeScreenState extends State<HealthcareProfessiona
         currentIndex: 0, // Dashboard is selected
         onTap: (index) {
           // Handle navigation
-          switch (index) {
-            case 1: // Triage
-              // Navigate to triage screen
-              break;
-            case 2: // Scan
-              // Handle scan action
-              break;
-            case 3: // Alerts
-              // Navigate to alerts screen
-              break;
-            case 4: // Patients
-              // Navigate to patients screen
-              break;
+          if (index == 1) { // Triage
+            print('Navigating to Triage screen...');
+            // Navigate to triage screen with pushReplacement
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const TriageScreen()),
+            );
+          } else if (index == 2) { // Scan
+            // Handle scan action
+            _showScanDialog();
+          } else if (index == 3) { // Alerts
+            // Navigate to alerts screen
+            print('Alerts screen not yet implemented');
+          } else if (index == 4) { // Patients
+            // Navigate to patients screen
+            print('Patients screen not yet implemented');
           }
         },
       ),
+    );
+  }
+  
+  void _showScanDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Scan'),
+          content: const Text('Scan functionality would be implemented here.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
     );
   }
   

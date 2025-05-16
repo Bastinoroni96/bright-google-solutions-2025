@@ -6,7 +6,6 @@ import '../widgets/patchpal_logo.dart';
 import '../widgets/login_text_field.dart';
 import '../widgets/rounded_button.dart';
 import '../services/auth_service.dart';
-import 'home_screen.dart';
 import 'signup/initial_signup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -32,6 +31,8 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _showErrorSnackBar(String message) {
+    if (!mounted) return;
+    
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -44,6 +45,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
     
+    if (!mounted) return;
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -56,12 +58,9 @@ class _LoginScreenState extends State<LoginScreen> {
         _passwordController.text,
       );
 
-      if (success) {
-        // Navigate to the home screen
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
-        );
-      } else {
+      // Don't update state or navigate after successful login
+      // The AuthWrapper will handle navigation automatically
+      if (!success && mounted) {
         setState(() {
           _errorMessage = authProvider.errorMessage;
         });
@@ -70,15 +69,22 @@ class _LoginScreenState extends State<LoginScreen> {
           _showErrorSnackBar(_errorMessage!);
         }
       }
+      // Important: Remove the direct navigation to HomeScreen
+      // Let AuthWrapper handle routing based on auth state
+      
     } catch (e) {
+      if (!mounted) return;
+      
       setState(() {
         _errorMessage = e.toString();
       });
       _showErrorSnackBar(_errorMessage!);
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -88,6 +94,7 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
+    if (!mounted) return;
     setState(() {
       _isLoading = true;
     });
@@ -96,22 +103,26 @@ class _LoginScreenState extends State<LoginScreen> {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final success = await authProvider.resetPassword(_emailController.text.trim());
       
-      if (success) {
+      if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Password reset email sent. Check your inbox.'),
             backgroundColor: Colors.green,
           ),
         );
-      } else {
+      } else if (mounted) {
         _showErrorSnackBar(authProvider.errorMessage ?? 'Failed to send reset email');
       }
     } catch (e) {
-      _showErrorSnackBar(e.toString());
+      if (mounted) {
+        _showErrorSnackBar(e.toString());
+      }
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 

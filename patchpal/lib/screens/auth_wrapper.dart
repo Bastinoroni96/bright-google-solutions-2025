@@ -1,52 +1,79 @@
-// lib/screens/auth_wrapper.dart (fixed)
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/auth_service.dart';
-import '../services/data_generator.dart'; // Add this import
-import 'home_screen.dart';
-import 'healthcare_professional_home_screen.dart';
-import 'login_screen.dart';
+import '../screens/home_screen.dart';
+import '../screens/healthcare_professional_home_screen.dart';
+import '../screens/login_screen.dart';
 
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
-    
-    // Show loading indicator while determining auth state
-    if (authProvider.isLoading) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
-    }
-    
-    // Debug logs
-    print('Auth state: ${authProvider.isAuthenticated}');
-    print('User: ${authProvider.user}');
-    
-    // Navigate based on authentication state
-    if (authProvider.isAuthenticated) {
-      // If user is authenticated, check their account type
-      
-      // Initialize sample data if needed, but only for personal users
-      if (authProvider.userModel?.accountType == 'personal') {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          SampleDataGenerator().generateDataIfNeeded(); // Fixed this line
-          print('Initializing sample data for personal user: ${authProvider.userModel?.fullName}');
-        });
-      }
-      
-      if (authProvider.userModel?.accountType == 'healthcare_professional') {
-        return const HealthcareProfessionalHomeScreen();
-      } else {
-        // Default to personal user home screen
-        return const HomeScreen();
-      }
-    } else {
-      return const LoginScreen();
-    }
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        // Show loading indicator while determining auth state
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+
+        // Debug logs
+        print('Auth state: ${snapshot.hasData}');
+        print('User: ${snapshot.data}');
+
+        // Navigate based on authentication state
+        if (snapshot.hasData && snapshot.data != null) {
+          // User is authenticated, fetch user type to decide which screen to show
+          return FutureBuilder<DocumentSnapshot>(
+            future: FirebaseFirestore.instance
+                .collection('users')
+                .doc(snapshot.data!.uid)
+                .get(),
+            builder: (context, userSnapshot) {
+              if (userSnapshot.connectionState == ConnectionState.waiting) {
+                return const Scaffold(
+                  body: Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+              }
+
+              // If user document exists and has accountType field
+              if (userSnapshot.hasData && 
+                  userSnapshot.data != null && 
+                  userSnapshot.data!.exists) {
+                
+                final userData = userSnapshot.data!.data() as Map<String, dynamic>?;
+                final accountType = userData?['accountType'] as String?;
+                
+                print('User account type: $accountType');
+                
+                // Route based on account type
+                if (accountType == 'healthcare_professional') {
+                  return const HealthcareProfessionalHomeScreen();
+                } else {
+                  // Default to personal user home screen
+                  return const HomeScreen();
+                }
+              } else {
+                // If user document doesn't exist or has no accountType,
+                // sign out and go to login
+                FirebaseAuth.instance.signOut();
+                return const LoginScreen();
+              }
+            },
+          );
+        } else {
+          // User is not authenticated
+          return const LoginScreen();
+        }
+      },
+    );
   }
 }
