@@ -1,4 +1,4 @@
-// lib/app.dart
+// lib/app.dart (fixed)
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'services/auth_service.dart';
@@ -21,6 +21,9 @@ class _PatchPalAppState extends State<PatchPalApp> {
   void initState() {
     super.initState();
     _lifecycleService.initialize();
+    
+    // Remove any code related to PatchPalDataInitializer here
+    // The data generation is now handled in the AuthProvider._init() method
   }
 
   @override

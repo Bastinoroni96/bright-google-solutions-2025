@@ -1,8 +1,9 @@
-// lib/services/auth_service.dart
+// lib/services/auth_service.dart (corrected)
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../models/user_model.dart';
 import 'user_service.dart';
+import 'data_generator.dart'; // Update this import
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -21,6 +22,19 @@ class AuthService {
         email: email,
         password: password,
       );
+      
+      // Check if user is a personal user and initialize data if needed
+      try {
+        UserModel? userModel = await _userService.getUserById(userCredential.user!.uid);
+        if (userModel?.accountType == 'personal') {
+          // Initialize sample data for personal users
+          SampleDataGenerator().generateDataIfNeeded(); // Updated this line
+        }
+      } catch (e) {
+        print('Non-critical error checking user type: $e');
+        // Continue even if we couldn't check user type
+      }
+      
       return userCredential;
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
@@ -56,6 +70,12 @@ class AuthService {
         
         // Update display name in Firebase Auth
         await userCredential.user!.updateDisplayName(fullName);
+        
+        // Initialize sample data for personal users
+        if (accountType == 'personal') {
+          print('New personal user registered. Initializing sample data...');
+          await SampleDataGenerator().generateDataIfNeeded(); // Updated this line
+        }
       }
       
       return userCredential;
@@ -140,6 +160,12 @@ class AuthProvider extends ChangeNotifier {
         
         try {
           _userModel = await _userService.getUserById(user.uid);
+          
+          // Initialize sample data for personal users
+          if (_userModel?.accountType == 'personal') {
+            print('Auth state changed: User is personal type. Checking for sample data...');
+            SampleDataGenerator().generateDataIfNeeded(); // Updated this line
+          }
         } catch (e) {
           print('Error loading user data: $e');
           _userModel = null;

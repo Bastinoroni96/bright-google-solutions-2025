@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart'; // Add this import
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'firebase_options.dart';
 import 'app.dart';
 
@@ -38,6 +38,6 @@ void main() async {
   } catch (e) {
     print('Firestore connection test failed: $e');
   }
-  
+
   runApp(const PatchPalApp());
 }
